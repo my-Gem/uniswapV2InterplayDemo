@@ -254,7 +254,7 @@ contract UniswapV2ByMe is ReentrancyGuard {
     }
 
     //存入token
-    //先approve才行
+    //首先approve
     //再执行此函数
     function depositToken(address token, uint256 _amount) external isHuman {
         require(_amount > 0, "Invalid data entered");
@@ -565,7 +565,6 @@ contract UniswapV2ByMe is ReentrancyGuard {
         address to,
         uint256 deadline
     ) external payable isHuman returns (uint256[] memory amounts) {
-        //注释的代码只能在前端给或者后端操作
         require(
             msg.value > 0 && amountOutMin > 0,
             "Ethereum must be greater than 0!"
