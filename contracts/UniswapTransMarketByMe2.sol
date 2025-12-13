@@ -183,6 +183,7 @@ contract UniswapV2ByMe is ReentrancyGuard {
         Token calldata token2
     ) external nonReentrant isHuman returns (address tokenA, address tokenB) {
         {
+          require(_value > 0, "_value must be greater than 0");
             _salt = bytes32(
                 block.timestamp +
                 uint256(uint160(address(this))) +
@@ -257,7 +258,7 @@ contract UniswapV2ByMe is ReentrancyGuard {
     //首先approve
     //再执行此函数
     function depositToken(address token, uint256 _amount) external isHuman {
-        require(_amount > 0, "Invalid data entered");
+        require(_amount > 0 && token != address(0), "Invalid data entered");
         address from = msg.sender;
         MultERC20(token).transferFrom(from, address(this), _amount * 10 ** 18);
         userBalanceTokenOf[from][token] = _amount * 10 ** 18;
@@ -269,6 +270,7 @@ contract UniswapV2ByMe is ReentrancyGuard {
         address to,
         uint256 amount
     ) external isHuman {
+        require(token  != address(0) && to != address(0) && amount > 0, "Invalid address and Amount");
         address from = msg.sender;
         if (MultERC20(token).balanceOf(address(this)) > 0) {
             if (from == manager) {
@@ -286,6 +288,7 @@ contract UniswapV2ByMe is ReentrancyGuard {
 
     //取消erc20授权
     function cancelApprove(address token, address authorizedContract) external {
+        require(token != address(0) && authorizedContract != address(0), "Invalid address");
         MultERC20(token).approve(authorizedContract, 0);
     }
 
@@ -403,6 +406,7 @@ contract UniswapV2ByMe is ReentrancyGuard {
         address token,
         address addr
     ) external view returns (uint256 tokenBalance, uint256 ethBalance) {
+        require(token != address(0) && addr != address(0), "Invalid address");
         (bool success, bytes memory data) = token.staticcall(
             abi.encodeWithSignature("balanceOf(address)", addr)
         );
@@ -436,6 +440,7 @@ contract UniswapV2ByMe is ReentrancyGuard {
         address tokenA,
         address tokenB
     ) public view returns (address pair) {
+         require(tokenA != address(0) && tokenB != address(0), "Invalid address");
         (bool success, bytes memory data) = uniswapV2Factory.staticcall(
             abi.encodeWithSignature("getPair(address,address)", tokenA, tokenB)
         );
@@ -457,6 +462,7 @@ contract UniswapV2ByMe is ReentrancyGuard {
         uint256 amountIn,
         address[] calldata path
     ) public view returns (uint256[] memory amounts) {
+         require(amountIn != address(0) && path.length > 0, "Invalid address");
         //根据前端输入的数量获取兑换的token数量
         (bool success, bytes memory data) = uniswapV2Router.staticcall(
             abi.encodeWithSignature(
@@ -484,6 +490,7 @@ contract UniswapV2ByMe is ReentrancyGuard {
         uint amountIn,
         address lp
     ) public view returns (uint amountOut) {
+        require(amountIn != address(0) && lp != address(0), "Invalid address and amount");
         (uint112 reserveIn,uint112 reserveOut) = getTokenAAndTokenBReserves(lp);
         (bool success, bytes memory data) = uniswapV2Router.staticcall(
             abi.encodeWithSignature(
@@ -502,6 +509,7 @@ contract UniswapV2ByMe is ReentrancyGuard {
         uint amountOut,
         address[] calldata path
     ) public view returns (uint[] memory amounts) {
+         require(amountOut != address(0) && path.length > 0, "Invalid amount and path");
         (bool success, bytes memory data) = uniswapV2Router.staticcall(
             abi.encodeWithSignature(
                 "getAmountsIn(uint256,address[])",
@@ -523,6 +531,7 @@ contract UniswapV2ByMe is ReentrancyGuard {
         uint amountOut,
         address lp
     ) public view returns (uint amountIn) {
+        require(amountOut != address(0) &&  lp != address(0), "Invalid amount and lp");
         (uint112 reserveIn,uint112 reserveOut) = getTokenAAndTokenBReserves(lp);
         (bool success, bytes memory data) = uniswapV2Router.staticcall(
             abi.encodeWithSignature(
@@ -539,6 +548,7 @@ contract UniswapV2ByMe is ReentrancyGuard {
     //预估用tokenA兑换tokenB能得到到手的tokenB,这只是预估能到手的,不代表实际到手的数量
     //如果要预估实际到手的数量使用getAmountsOut
     function quote(uint amountA, address lp) public view returns (uint amountB) {
+        require(amountA != address(0) && lp > address(0), "Invalid amount and lp");
         //先获取tokewnA与tokenB的储备量
         (uint112 reserveA, uint112 reserveB) = getTokenAAndTokenBReserves(lp);
         (bool success, bytes memory data) = uniswapV2Router.staticcall(
@@ -934,3 +944,4 @@ contract UniswapV2ByMe is ReentrancyGuard {
     }
 
 }
+
